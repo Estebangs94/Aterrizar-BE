@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Aterrizar.Contracts\Aterrizar.Contracts.csproj" />
+    <ProjectReference Include="..\Aterrizar.Application\Aterrizar.Application.csproj" />
+    <ProjectReference Include="..\Aterrizar.Infrastructure\Aterrizar.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
