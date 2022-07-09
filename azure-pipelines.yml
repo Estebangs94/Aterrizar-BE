@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- none
+- main
 
 pool:
   vmImage: 'windows-latest'
@@ -25,3 +25,9 @@ steps:
     command: 'restore'
     restoreSolution: '$(solution)'
     feedsToUse: 'select'
+  displayName: 'NuGet restore'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
