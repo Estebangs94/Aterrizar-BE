@@ -4,40 +4,24 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- main
+- none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'windows-latest'
 
 variables:
+  buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  solution: '**/Aterrizar.sln'
+  project: ''
 
 steps:
-- checkout: none
-- powershell: |
-    $SEARCH_PATH=$Env:Path
-    Write-Host "##[debug] Found directories"
-    ForEach ($Dir in $SEARCH_PATH -split ";") {
-      Write-Host "$Dir"
-    }
-    Write-Host ""
-    Write-Host ""
-    Write-Host "##[debug] Found files"
-    ForEach ($Dir in $SEARCH_PATH -split ";") {
-      Get-ChildItem $Dir -File -ErrorAction Continue | ForEach-Object -Process {
-        Write-Host $_.FullName
-      }
-    }
-- script: dotnet restore
-  displayName: Restoring .Net packages
+- task: NuGetToolInstaller@1
+  name: 'NuGetToolInstaller'
+  displayName: 'NuGet tool installer'
 
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: Building .Net code
-
-
-#- task: DotNetCoreCLI@2
-#  displayName: Running unit tests
-#  inputs:
-#    command: test
-#    projects: '**/*Tests/*.csproj'
-#    arguments: '--configuration $(buildConfiguration)'
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+    feedsToUse: 'select'
