@@ -1,6 +1,5 @@
 using Aterrizar.Application.Services.Authentication;
 using Aterrizar.Contracts.Authentication;
-using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aterrizar.Api.Controllers;
