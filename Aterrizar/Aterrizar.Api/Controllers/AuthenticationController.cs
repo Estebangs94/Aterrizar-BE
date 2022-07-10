@@ -6,7 +6,7 @@ namespace Aterrizar.Api.Controllers;
 
 [ApiController]
 [Route("auth")]
-public class AuthenticationController : ControllerBase
+public class AuthenticationController : ApiController
 {
     private readonly IAuthenticationService _authenticationService;
 
@@ -20,13 +20,9 @@ public class AuthenticationController : ControllerBase
     {
         var authResult = await _authenticationService.Register(request.FirstName, request.LastName, request.Email, request.Password);
 
-        var response = new AuthenticationResponse(
-            authResult.User.Id,
-            authResult.User.FirstName,
-            authResult.User.LastName,
-            authResult.User.Email,
-            authResult.Token
-        );
+        if (authResult.IsFailed) return Problem(authResult.Errors[0]);
+
+        AuthenticationResponse response = MapToResponse(authResult.Value);
 
         return Ok(response);
     }
@@ -36,13 +32,21 @@ public class AuthenticationController : ControllerBase
     {
         var authResult = await _authenticationService.Login(request.Email, request.Password);
 
-        var response = new AuthenticationResponse(
+        if (authResult.IsFailed) return Problem(authResult.Errors[0]);
+
+        AuthenticationResponse response = MapToResponse(authResult.Value);
+
+        return Ok(response);
+    }
+
+    private static AuthenticationResponse MapToResponse(AuthenticationResult authResult)
+    {
+        return new AuthenticationResponse(
             authResult.User.Id,
             authResult.User.FirstName,
             authResult.User.LastName,
             authResult.User.Email,
             authResult.Token
         );
-        return Ok(response);
     }
 }

@@ -1,6 +1,8 @@
 using Aterrizar.Application.Common.Interfaces.Authentication;
 using Aterrizar.Application.Common.Interfaces.Persistance;
+using Aterrizar.Domain.Common.Errors.User;
 using Aterrizar.Domain.Entities;
+using FluentResults;
 
 namespace Aterrizar.Application.Services.Authentication;
 
@@ -15,36 +17,38 @@ public class AuthenticationService : IAuthenticationService
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public async Task<AuthenticationResult> Login(string email, string password)
+    public async Task<Result<AuthenticationResult>> Login(string email, string password)
     {
-        if (_userRepository.GetUserByEmail(email) is not User user)
-                throw new InvalidOperationException($"User with given email {email} already exists");
+        var user = _userRepository.GetUserByEmail(email);
 
-            if (user.Password != password)
-                throw new InvalidOperationException("Invalid password.");
+        if (user is null)
+            return Result.Fail(new UserNotFound(email));
 
-            var token = await _jwtTokenGenerator.GenerateToken(user);
+        if (user.Password != password)
+            return Result.Fail(new UserInvalidPassword());
 
-            return new AuthenticationResult(user, token);
+        var token = await _jwtTokenGenerator.GenerateToken(user);
+
+        return new AuthenticationResult(user, token);
     }
 
-    public async Task<AuthenticationResult> Register(string firstName, string lastName, string email, string password)
+    public async Task<Result<AuthenticationResult>> Register(string firstName, string lastName, string email, string password)
     {
         if (_userRepository.GetUserByEmail(email) is not null)
-                throw new Exception($"User with given email {email} already exists");
+            return Result.Fail(new UserEmailAlreadyExists(email));
 
-            var user = new User
-            {
-                FirstName = firstName,
-                LastName = lastName,
-                Email = email,
-                Password = password
-            };
+        var user = new User
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            Password = password
+        };
 
-            _userRepository.Add(user);
+        _userRepository.Add(user);
 
-            var token = await _jwtTokenGenerator.GenerateToken(user);
+        var token = await _jwtTokenGenerator.GenerateToken(user);
 
-            return new AuthenticationResult(user, token);
+        return new AuthenticationResult(user, token);
     }
 }
