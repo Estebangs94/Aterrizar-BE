@@ -1,3 +1,4 @@
+using Aterrizar.Application.Services.Authentication;
 using Aterrizar.Contracts.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,15 +8,41 @@ namespace Aterrizar.Api.Controllers;
 [Route("auth")]
 public class AuthenticationController : ControllerBase
 {
-    [HttpPost("register")]
-    public IActionResult Register(RegisterRequest request)
+    private readonly IAuthenticationService _authenticationService;
+
+    public AuthenticationController(IAuthenticationService authenticationService)
     {
-        return Ok(request);
+        _authenticationService = authenticationService;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterRequest request)
+    {
+        var authResult = await _authenticationService.Register(request.FirstName, request.LastName, request.Email, request.Password);
+
+        var response = new AuthenticationResponse(
+            authResult.User.Id,
+            authResult.User.FirstName,
+            authResult.User.LastName,
+            authResult.User.Email,
+            authResult.Token
+        );
+
+        return Ok(response);
     }
 
     [HttpPost("login")]
-    public IActionResult Login(LoginRequest request)
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        return Ok(request);
+        var authResult = await _authenticationService.Login(request.Email, request.Password);
+
+        var response = new AuthenticationResponse(
+            authResult.User.Id,
+            authResult.User.FirstName,
+            authResult.User.LastName,
+            authResult.User.Email,
+            authResult.Token
+        );
+        return Ok(response);
     }
 }
