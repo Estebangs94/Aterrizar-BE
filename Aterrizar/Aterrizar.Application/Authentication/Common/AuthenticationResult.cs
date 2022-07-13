@@ -1,6 +1,6 @@
 using Aterrizar.Domain.Entities;
 
-namespace Aterrizar.Application.Services.Authentication;
+namespace Aterrizar.Application.Authentication.Common;
 
 public record AuthenticationResult(
     User User,

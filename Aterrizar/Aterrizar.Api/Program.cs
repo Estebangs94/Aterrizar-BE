@@ -1,5 +1,4 @@
 using Aterrizar.Application;
-using Aterrizar.Application.Services.Authentication;
 using Aterrizar.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);

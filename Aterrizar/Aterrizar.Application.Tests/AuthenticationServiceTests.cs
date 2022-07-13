@@ -1,6 +1,9 @@
+using Aterrizar.Application.Authentication.Commands.Register;
+using Aterrizar.Application.Authentication.Common;
+using Aterrizar.Application.Authentication.Queries.Login;
 using Aterrizar.Application.Common.Interfaces.Authentication;
-using Aterrizar.Application.Services.Authentication;
 using Aterrizar.Domain.Common.Errors.User;
+using MediatR;
 using Moq;
 
 namespace Aterrizar.Application.Tests;
@@ -10,9 +13,10 @@ public class AuthenticationServiceTests
     [Fact]
     public async Task Login_WhenWrongEmail_ShouldReturnNotFoundUser()
     {
-        IAuthenticationService target = SutFactory();
+        var loginQuery = new LoginQuery("test@example.com", "testpass");
+        var loginQueryHandler = new LoginQueryHandler(new UserRepositoryStub(), new Mock<IJwtTokenGenerator>().Object);
 
-        var result = await target.Login("test@example.com", "testpass");
+        var result = await loginQueryHandler.Handle(loginQuery, default);
 
         Assert.IsType<UserNotFound>(result.Errors[0] as UserNotFound);
     }
@@ -20,25 +24,44 @@ public class AuthenticationServiceTests
     [Fact]
     public async Task Login_WhenWrongPassword_ShouldReturnInvalidPassword()
     {
-        IAuthenticationService target = SutFactory();
+        var loginQuery = new LoginQuery("testuser@example.com", "testbad");
+        var loginQueryHandler = new LoginQueryHandler(new UserRepositoryStub(), new Mock<IJwtTokenGenerator>().Object);
 
-        var result = await target.Login("testuser@example.com", "testbad");
+        var result = await loginQueryHandler.Handle(loginQuery, default);
 
         Assert.IsType<UserInvalidPassword>(result.Errors[0] as UserInvalidPassword);
     }
 
     [Fact]
-    public async Task Login_ShouldReturnUser()
+    public async Task Login_ShouldReturnAuthenticationResult()
     {
-        IAuthenticationService target = SutFactory();
+        var loginQuery = new LoginQuery("testuser@example.com", "testpass");
+        var loginQueryHandler = new LoginQueryHandler(new UserRepositoryStub(), new Mock<IJwtTokenGenerator>().Object);
 
-        var result = await target.Login("testuser@example.com", "testpass");
+        var result = await loginQueryHandler.Handle(loginQuery, default);
 
         Assert.IsType<AuthenticationResult>(result.Value);
     }
 
-    private static IAuthenticationService SutFactory()
+    [Fact]
+    public async Task Register_ShouldReturnAuthenticationResult()
     {
-        return new AuthenticationService(new UserRepositoryStub(), new Mock<IJwtTokenGenerator>().Object);
+        var registerCommand = new RegisterCommand("juan", "perez","testuser@gmail.com", "testpass");
+        var registerCommandHandler = new RegisterCommandHandler(new UserRepositoryStub(), new Mock<IJwtTokenGenerator>().Object);
+
+        var result = await registerCommandHandler.Handle(registerCommand, default);
+
+        Assert.IsType<AuthenticationResult>(result.Value);
+    }
+
+    [Fact]
+    public async Task Register_DuplicateEmail_ShouldReturnUserAlreadyExists()
+    {
+        var registerCommand = new RegisterCommand("juan", "perez","testuser@example.com", "testpass");
+        var registerCommandHandler = new RegisterCommandHandler(new UserRepositoryStub(), new Mock<IJwtTokenGenerator>().Object);
+
+        var result = await registerCommandHandler.Handle(registerCommand, default);
+
+        Assert.IsType<UserEmailAlreadyExists>(result.Errors[0] as UserEmailAlreadyExists);
     }
 }

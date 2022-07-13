@@ -1,5 +1,8 @@
-using Aterrizar.Application.Services.Authentication;
+using Aterrizar.Application.Authentication.Commands.Register;
+using Aterrizar.Application.Authentication.Common;
+using Aterrizar.Application.Authentication.Queries.Login;
 using Aterrizar.Contracts.Authentication;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aterrizar.Api.Controllers;
@@ -8,17 +11,18 @@ namespace Aterrizar.Api.Controllers;
 [Route("auth")]
 public class AuthenticationController : ApiController
 {
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IMediator _mediator;
 
-    public AuthenticationController(IAuthenticationService authenticationService)
+    public AuthenticationController(IMediator mediator)
     {
-        _authenticationService = authenticationService;
+        _mediator = mediator;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var authResult = await _authenticationService.Register(request.FirstName, request.LastName, request.Email, request.Password);
+        var command = new RegisterCommand(request.FirstName, request.LastName, request.Email, request.Password);
+        var authResult = await _mediator.Send(command);
 
         if (authResult.IsFailed) return Problem(authResult.Errors[0]);
 
@@ -30,7 +34,8 @@ public class AuthenticationController : ApiController
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var authResult = await _authenticationService.Login(request.Email, request.Password);
+        var query = new LoginQuery(request.Email, request.Password);
+        var authResult = await _mediator.Send(query);
 
         if (authResult.IsFailed) return Problem(authResult.Errors[0]);
 
