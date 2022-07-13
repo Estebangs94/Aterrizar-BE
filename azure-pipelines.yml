@@ -37,5 +37,5 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solution)'
-    arguments: '--no-build --configuration $(buildConfiguration)'
+    arguments: '--configuration $(buildConfiguration)'
   displayName: 'Test run'
