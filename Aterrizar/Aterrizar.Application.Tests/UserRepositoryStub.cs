@@ -18,7 +18,6 @@ internal class UserRepositoryStub : IUserRepository
 
     public void Add(User user)
     {
-        throw new NotImplementedException();
     }
 
     public User? GetUserByEmail(string email)
